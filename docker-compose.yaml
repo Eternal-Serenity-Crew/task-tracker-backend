@@ -1,0 +1,22 @@
+name: "esc-task-tracker"
+services:
+  task-tracker-postgres:
+    container_name: task-tracker-postgres
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - task-tracker-postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - backend-net
+
+volumes:
+  task-tracker-postgres-data:
+
+networks:
+  backend-net:
+    driver: bridge
