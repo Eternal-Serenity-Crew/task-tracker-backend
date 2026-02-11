@@ -23,5 +23,12 @@ class ResponseBodyAdvice : ResponseBodyAdvice<Any> {
         selectedConverterType: Class<out HttpMessageConverter<*>>,
         request: ServerHttpRequest,
         response: ServerHttpResponse
-    ) = body as? BasicSuccessfulResponse<*> ?: BasicSuccessfulResponse(body)
+    ): Any? {
+        return when (body) {
+            null -> BasicSuccessfulResponse(null)
+            is BasicErrorResponse -> body
+            is BasicSuccessfulResponse<*> -> body
+            else -> BasicSuccessfulResponse(body)
+        }
+    }
 }
