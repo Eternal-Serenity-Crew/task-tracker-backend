@@ -1,3 +1,18 @@
+server:
+  port: ${SERVER_PORT}
+
 spring:
   application:
     name: esc-task-tracker
+
+database:
+  url: ${DB_URL}
+  username: ${DB_USER}
+  password: ${DB_PASSWORD}
+  schema: ${DB_SCHEMA}
+
+config:
+  jwt:
+    secret: ${JWT_SECRET}
+    access_token_expiration: ${JWT_ACCESS_EXPIRATION_TIME}
+    refresh_token_expiration: ${JWT_REFRESH_EXPIRATION_TIME}
