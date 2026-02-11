@@ -96,3 +96,11 @@ allOpen {
 tasks.withType<Test> {
     useJUnitPlatform()
 }
+
+conventionalCommits {
+    warningIfNoGitRoot = true
+    types += listOf("build", "chore", "docs", "feat", "fix", "refactor", "style", "test")
+    scopes = emptyList()
+    successMessage = "Сообщение коммита соответствует стандартам Conventional Commit."
+    failureMessage = "Сообщение коммита не соответствует стандартам Conventional Commit."
+}
