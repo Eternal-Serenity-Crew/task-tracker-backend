@@ -14,6 +14,7 @@ import org.esc.tasktracker.repositories.specs.UsersSpecifications
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.domain.Specification
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -21,7 +22,8 @@ import org.springframework.transaction.annotation.Transactional
 class UsersService(
     override val repository: UsersRepository,
     private val usersSpecifications: UsersSpecifications,
-    private val usersMapper: UsersMapper
+    private val usersMapper: UsersMapper,
+    private val passwordEncoder: PasswordEncoder,
 ) : CrudService<Users, Long, CreateUserDto, UpdateUserDto, UsersFilterDto> {
 
     override fun getAll(
@@ -47,7 +49,7 @@ class UsersService(
             throwable = false
         )?.let { throw DoubleRecordException("Пользователь с таким email уже существует.") }
 
-        return repository.save(usersMapper.userFromDto(item))
+        return repository.save(usersMapper.userFromDto(item).copy(password = passwordEncoder.encode(item.password)!!))
     }
 
     @Transactional
