@@ -7,6 +7,8 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import org.esc.tasktracker.annotations.NotTrimmable
+import org.esc.tasktracker.io.TrimEntityListener
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
@@ -14,7 +16,7 @@ import java.time.Instant
 
 @Entity
 @Table(name = "users")
-@EntityListeners(AuditingEntityListener::class)
+@EntityListeners(AuditingEntityListener::class, TrimEntityListener::class)
 data class Users(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,6 +28,7 @@ data class Users(
     @Column(nullable = false, unique = true)
     var email: String,
 
+    @NotTrimmable
     @Column(nullable = false)
     var password: String,
 
