@@ -16,3 +16,8 @@ config:
     secret: ${JWT_SECRET}
     access_token_expiration: ${JWT_ACCESS_EXPIRATION_TIME}
     refresh_token_expiration: ${JWT_REFRESH_EXPIRATION_TIME}
+
+  cors:
+    frontend_local_host: ${$FRONTEND_LOCAL_HOST}
+    frontend_docker_host: ${FRONTEND_DOCKER_HOST}
+    frontend_production_host: ${$FRONTEND_PRODUCTION_HOST}
