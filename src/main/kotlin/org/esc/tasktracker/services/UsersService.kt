@@ -56,10 +56,12 @@ class UsersService(
         val user = getById(item.id, message = "Пользователь с ID ${item.id} не найден.")!!
 
         item.name?.let { user.name = it }
-        item.email?.takeIfOrThrow(
-            predicate = { email -> getByEmail(email, false) == null },
-            exception = { DoubleRecordException("Email ${item.email} занят") }
-        )?.also { user.email = it }
+        item.email
+            ?.takeIf { user.email != it }
+            ?.takeIfOrThrow(
+                predicate = { email -> getByEmail(email, false) == null },
+                exception = { DoubleRecordException("Email ${item.email} занят") }
+            )?.also { user.email = it }
 
         return repository.save(user)
     }
