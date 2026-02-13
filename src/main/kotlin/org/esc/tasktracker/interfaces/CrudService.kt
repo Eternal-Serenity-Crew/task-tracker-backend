@@ -3,13 +3,12 @@ package org.esc.tasktracker.interfaces
 import org.esc.tasktracker.exceptions.NotFoundException
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
-import org.springframework.data.jpa.domain.Specification
 import org.springframework.data.jpa.repository.JpaRepository
 
 interface CrudService<T : Any, ID : Any, CrDTO : Any, UpDTO : Any, Filters : FilterDtoClass> {
     val repository: JpaRepository<T, ID>
 
-    fun getAll(filters: Filters?, pageable: Pageable, criteria: Specification<T>?): Page<T>
+    fun getAll(filters: Filters?, pageable: Pageable): Page<T>
     fun getById(id: ID?, throwable: Boolean = true, message: String = "Object with id $id not found."): T? {
         if (id == null) {
             if (throwable) {

@@ -29,7 +29,6 @@ class UsersService(
     override fun getAll(
         filters: UsersFilterDto?,
         pageable: Pageable,
-        criteria: Specification<Users>?
     ): Page<Users> {
         val specs = listOfNotNull(
             usersSpecifications.hasName(filters?.name),
