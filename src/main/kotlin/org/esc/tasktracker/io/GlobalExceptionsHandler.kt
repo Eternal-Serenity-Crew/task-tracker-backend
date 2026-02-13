@@ -37,7 +37,7 @@ class GlobalExceptionsHandler {
             message = ex.message?: "Exception occurred",
         )
 
-        return ResponseEntity(errorResponse, HttpStatus.NOT_FOUND)
+        return ResponseEntity(errorResponse, HttpStatus.valueOf(ex.status))
     }
 
     @ExceptionHandler(MethodArgumentNotValidException::class)
