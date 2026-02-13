@@ -6,6 +6,7 @@ import org.esc.tasktracker.exceptions.JwtAuthenticationException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.authorization.AuthorizationDeniedException
+import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 
@@ -37,6 +38,16 @@ class GlobalExceptionsHandler {
         )
 
         return ResponseEntity(errorResponse, HttpStatus.NOT_FOUND)
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException::class)
+    fun handleValidationException(ex: MethodArgumentNotValidException): ResponseEntity<BasicErrorResponse> {
+        val errorResponse = BasicErrorResponse(
+            status = HttpStatus.BAD_REQUEST.value(),
+            message = "Произошла ошибка при валидации входных параметров. Проверьте отправляемые данные."
+        )
+
+        return ResponseEntity(errorResponse, HttpStatus.BAD_REQUEST)
     }
 
     /**
