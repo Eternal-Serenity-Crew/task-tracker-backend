@@ -28,7 +28,7 @@ class WebSecurityConfig(
         http
             .authorizeHttpRequests { auth ->
                 auth.requestMatchers("/actuator/prometheus").permitAll()
-                auth.requestMatchers("/*/auth/**").permitAll()
+                auth.requestMatchers("/api/v*/auth/**").permitAll()
                 auth.anyRequest().authenticated()
             }
             .csrf { csrf -> csrf.disable() }
@@ -50,8 +50,18 @@ class WebSecurityConfig(
             addAllowedOrigin(corsProperties.frontendLocalHost)
             addAllowedOrigin(corsProperties.frontendDockerHost)
             addAllowedOrigin(corsProperties.frontendProductionHost)
+
             allowedMethods = listOf("*")
-            allowedHeaders = listOf("Content-Type", "Authorization", "Accept", "Origin", "X-Requested-With", "User-Email")
+            allowedHeaders = listOf(
+                "Content-Type",
+                "Authorization",
+                "Accept",
+                "Origin",
+                "X-Requested-With",
+                "User-Email",
+                "Session-ID"
+            )
+
             allowCredentials = true
         }
         val source = UrlBasedCorsConfigurationSource()
