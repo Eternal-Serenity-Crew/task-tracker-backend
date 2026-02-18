@@ -1,13 +1,14 @@
-package org.esc.tasktracker.interfaces.services.crud
+package org.esc.tasktracker.interfaces
 
 import org.esc.tasktracker.exceptions.NotFoundException
-import org.esc.tasktracker.interfaces.FilterDtoClass
-import org.esc.tasktracker.interfaces.services.BasicApiService
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import org.springframework.data.jpa.repository.JpaRepository
 
-interface IReadService<T, ID, Filters: FilterDtoClass> : BasicApiService<T, ID> {
-    fun getAll(filters: Filters, pageable: Pageable): Page<T> = repository.findAll(pageable)
+interface CrudService<T : Any, ID : Any, CrDTO : Any, UpDTO : Any, Filters : FilterDtoClass> {
+    val repository: JpaRepository<T, ID>
+
+    fun getAll(filters: Filters?, pageable: Pageable): Page<T>
     fun getById(id: ID?, throwable: Boolean = true, message: String = "Object with id $id not found."): T? {
         if (id == null) {
             if (throwable) {
@@ -22,4 +23,11 @@ interface IReadService<T, ID, Filters: FilterDtoClass> : BasicApiService<T, ID> 
         }
         return if (!o.isPresent) null else o.get()
     }
+
+    fun create(item: CrDTO): Any
+
+    fun update(item: UpDTO): Any
+
+    fun deleteById(id: ID): Any?
+    fun deleteAll(): Any? = repository.deleteAll()
 }

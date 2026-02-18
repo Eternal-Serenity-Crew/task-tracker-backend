@@ -12,16 +12,23 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice
 class ResponseBodyAdvice : ResponseBodyAdvice<Any> {
 
     override fun supports(
-        returnType: MethodParameter?,
-        converterType: Class<out HttpMessageConverter<*>?>?
+        returnType: MethodParameter,
+        converterType: Class<out HttpMessageConverter<*>>
     ) = true
 
     override fun beforeBodyWrite(
         body: Any?,
-        returnType: MethodParameter?,
-        selectedContentType: MediaType?,
-        selectedConverterType: Class<out HttpMessageConverter<*>?>?,
-        request: ServerHttpRequest?,
-        response: ServerHttpResponse?
-    ) = body as? BasicSuccessfulResponse<*> ?: BasicSuccessfulResponse(body)
+        returnType: MethodParameter,
+        selectedContentType: MediaType,
+        selectedConverterType: Class<out HttpMessageConverter<*>>,
+        request: ServerHttpRequest,
+        response: ServerHttpResponse
+    ): Any? {
+        return when (body) {
+            null -> BasicSuccessfulResponse(null)
+            is BasicErrorResponse -> body
+            is BasicSuccessfulResponse<*> -> body
+            else -> BasicSuccessfulResponse(body)
+        }
+    }
 }
