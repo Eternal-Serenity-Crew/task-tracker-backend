@@ -31,6 +31,7 @@ val kotlinxSerializationVersion: String by project
 val kotlinxCoroutinesVersion: String by project
 val dotenvSpringVersion: String by project
 val javaxAnnotationVersion: String by project
+val mockkVersion: String by project
 
 dependencies {
     // --- Spring Boot Starters ---
@@ -71,13 +72,15 @@ dependencies {
     implementation("org.aspectj:aspectjweaver")
 
     // --- Tests ---
-    testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
-    testImplementation("org.springframework.boot:spring-boot-starter-flyway-test")
-    testImplementation("org.springframework.boot:spring-boot-starter-security-test")
-    testImplementation("org.springframework.boot:spring-boot-starter-validation-test")
-    testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
-    testImplementation("org.springframework.boot:spring-boot-starter-websocket-test")
+    testImplementation("io.mockk:mockk:${mockkVersion}")
+    testImplementation("org.jetbrains.kotlin:kotlin-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+    testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-flyway-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-security-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-websocket-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-validation-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
