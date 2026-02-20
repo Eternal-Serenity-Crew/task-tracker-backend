@@ -79,6 +79,6 @@ class UsersService(
     override fun deleteAll(): String {
         repository.deleteAll()
 
-        return "Все пользователи удалены успещно."
+        return "Все пользователи удалены успешно."
     }
 }
