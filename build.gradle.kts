@@ -4,6 +4,7 @@ plugins {
     kotlin("plugin.jpa") version "2.2.21"
     kotlin("plugin.spring") version "2.2.21"
     kotlin("plugin.serialization") version "2.2.0"
+    id("com.bakdata.mockito") version "1.8.1"
     id("org.flywaydb.flyway") version "11.13.2"
     id("org.springframework.boot") version "4.0.2"
     id("io.spring.dependency-management") version "1.1.7"
@@ -31,6 +32,8 @@ val kotlinxSerializationVersion: String by project
 val kotlinxCoroutinesVersion: String by project
 val dotenvSpringVersion: String by project
 val javaxAnnotationVersion: String by project
+val mockkVersion: String by project
+val mockkAgent: Configuration by configurations.creating
 
 dependencies {
     // --- Spring Boot Starters ---
@@ -71,13 +74,17 @@ dependencies {
     implementation("org.aspectj:aspectjweaver")
 
     // --- Tests ---
-    testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
-    testImplementation("org.springframework.boot:spring-boot-starter-flyway-test")
-    testImplementation("org.springframework.boot:spring-boot-starter-security-test")
-    testImplementation("org.springframework.boot:spring-boot-starter-validation-test")
-    testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
-    testImplementation("org.springframework.boot:spring-boot-starter-websocket-test")
+    mockkAgent("net.bytebuddy:byte-buddy-agent:1.17.8")
+    testImplementation("io.mockk:mockk:${mockkVersion}")
+    testImplementation("org.mockito:mockito-core")
+    testImplementation("org.jetbrains.kotlin:kotlin-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+    testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-flyway-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-security-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-websocket-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-validation-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
@@ -95,6 +102,10 @@ allOpen {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+    jvmArgs("-Xshare:off", "-XX:+EnableDynamicAgentLoading")
+    testLogging {
+        events("passed", "skipped", "failed")
+    }
 }
 
 conventionalCommits {
