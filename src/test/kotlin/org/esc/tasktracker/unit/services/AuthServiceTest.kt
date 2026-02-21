@@ -1,10 +1,6 @@
 package org.esc.tasktracker.unit.services
 
-import io.mockk.every
-import io.mockk.just
-import io.mockk.mockk
-import io.mockk.runs
-import io.mockk.verify
+import io.mockk.*
 import org.esc.tasktracker.exceptions.DoubleRecordException
 import org.esc.tasktracker.exceptions.JwtAuthenticationException
 import org.esc.tasktracker.security.JwtUtil
@@ -13,6 +9,7 @@ import org.esc.tasktracker.services.UsersService
 import org.esc.tasktracker.unit.generators.createLoginUserDto
 import org.esc.tasktracker.unit.generators.createUser
 import org.esc.tasktracker.unit.generators.createUserCreateDto
+import org.esc.tasktracker.unit.generators.updateUsersTokensDto
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.assertThrows
@@ -37,6 +34,8 @@ class AuthServiceTest {
             val uuid = UUID.randomUUID()
 
             every { usersService.create(createUserDto) } returns user
+
+            /** private generateTokens(user: Users, sessionId: UUID) func mocks */
             every { jwtUtil.removeOldRefreshTokenByUUID(uuid) } just runs
             every { jwtUtil.generateAccessToken(any()) } returns "accessToken"
             every { jwtUtil.generateRefreshToken(any()) } returns "refreshToken"
@@ -46,10 +45,12 @@ class AuthServiceTest {
             assertEquals("accessToken", result.accessToken)
             assertEquals("refreshToken", result.refreshToken)
 
-            verify { usersService.create(createUserDto) }
-            verify { jwtUtil.removeOldRefreshTokenByUUID(uuid) }
-            verify { jwtUtil.generateAccessToken(any()) }
-            verify { jwtUtil.generateRefreshToken(any()) }
+            verify {
+                usersService.create(createUserDto)
+                jwtUtil.removeOldRefreshTokenByUUID(uuid)
+                jwtUtil.generateAccessToken(any())
+                jwtUtil.generateRefreshToken(any())
+            }
         }
 
         @Test
@@ -62,9 +63,11 @@ class AuthServiceTest {
             assertThrows<DoubleRecordException> { service.register(createUserDto, uuid) }
 
             verify { usersService.create(createUserDto) }
-            verify(exactly = 0) { jwtUtil.removeOldRefreshTokenByUUID(uuid) }
-            verify(exactly = 0) { jwtUtil.generateAccessToken(any()) }
-            verify(exactly = 0) { jwtUtil.generateRefreshToken(any()) }
+            verify(exactly = 0) {
+                jwtUtil.removeOldRefreshTokenByUUID(uuid)
+                jwtUtil.generateAccessToken(any())
+                jwtUtil.generateRefreshToken(any())
+            }
         }
     }
 
@@ -79,6 +82,8 @@ class AuthServiceTest {
 
             every { usersService.getByEmail(any(), any()) } returns user
             every { passwordEncoder.matches(any(), any()) } returns true
+
+            /** private generateTokens(user: Users, sessionId: UUID) func mocks */
             every { jwtUtil.removeOldRefreshTokenByUUID(uuid) } just runs
             every { jwtUtil.generateAccessToken(any()) } returns "accessToken"
             every { jwtUtil.generateRefreshToken(any()) } returns "refreshToken"
@@ -88,10 +93,12 @@ class AuthServiceTest {
             assertEquals("accessToken", result.accessToken)
             assertEquals("refreshToken", result.refreshToken)
 
-            verify { usersService.getByEmail(user.email, false) }
-            verify { jwtUtil.removeOldRefreshTokenByUUID(uuid) }
-            verify { jwtUtil.generateAccessToken(any()) }
-            verify { jwtUtil.generateRefreshToken(any()) }
+            verify {
+                usersService.getByEmail(user.email, false)
+                jwtUtil.removeOldRefreshTokenByUUID(uuid)
+                jwtUtil.generateAccessToken(any())
+                jwtUtil.generateRefreshToken(any())
+            }
         }
 
         @Test
@@ -107,11 +114,15 @@ class AuthServiceTest {
 
             assertEquals(exception.message, "Неверные логин или пароль.")
 
-            verify { usersService.getByEmail(user.email, false) }
-            verify { passwordEncoder.matches(loginDto.password, user.password) }
-            verify(exactly = 0) { jwtUtil.removeOldRefreshTokenByUUID(uuid) }
-            verify(exactly = 0) { jwtUtil.generateAccessToken(any()) }
-            verify(exactly = 0) { jwtUtil.generateRefreshToken(any()) }
+            verify {
+                usersService.getByEmail(user.email, false)
+                passwordEncoder.matches(loginDto.password, user.password)
+            }
+            verify(exactly = 0) {
+                jwtUtil.removeOldRefreshTokenByUUID(uuid)
+                jwtUtil.generateAccessToken(any())
+                jwtUtil.generateRefreshToken(any())
+            }
         }
 
         @Test
@@ -127,10 +138,93 @@ class AuthServiceTest {
             assertEquals(exception.message, "Неверные логин или пароль.")
 
             verify { usersService.getByEmail(loginDto.email, false) }
-            verify(exactly = 0) { passwordEncoder.matches(user.password, user.password) }
-            verify(exactly = 0) { jwtUtil.removeOldRefreshTokenByUUID(uuid) }
-            verify(exactly = 0) { jwtUtil.generateAccessToken(any()) }
-            verify(exactly = 0) { jwtUtil.generateRefreshToken(any()) }
+            verify(exactly = 0) {
+                passwordEncoder.matches(user.password, user.password)
+                jwtUtil.removeOldRefreshTokenByUUID(uuid)
+                jwtUtil.generateAccessToken(any())
+                jwtUtil.generateRefreshToken(any())
+            }
+        }
+    }
+
+    @Nested
+    inner class UpdateTokensTests {
+        @Test
+        fun `should validate old tokens and return new tokens`() {
+            val dto = updateUsersTokensDto()
+            val uuid = UUID.randomUUID()
+            val user = createUser()
+
+            every { jwtUtil.verifyToken(dto.accessToken, any<UUID>(), throwTimeLimit = false) } returns false
+            every { jwtUtil.verifyToken(dto.refreshToken, any<UUID>(), throwTimeLimit = true) } returns true
+            every { jwtUtil.getUserFromToken(any()) } returns user
+
+            /** private generateTokens(user: Users, sessionId: UUID) func mocks */
+            every { jwtUtil.removeOldRefreshTokenByUUID(uuid) } just runs
+            every { jwtUtil.generateAccessToken(any()) } returns "accessToken"
+            every { jwtUtil.generateRefreshToken(any()) } returns "refreshToken"
+
+            val result = service.updateTokens(dto, uuid)
+
+            assertEquals("accessToken", result.accessToken)
+            assertEquals("refreshToken", result.refreshToken)
+
+            verify(exactly = 2) { jwtUtil.verifyToken(any(), any<UUID>(), throwTimeLimit = any<Boolean>()) }
+            verify {
+                jwtUtil.getUserFromToken(any())
+                jwtUtil.removeOldRefreshTokenByUUID(uuid)
+                jwtUtil.generateAccessToken(any())
+                jwtUtil.generateRefreshToken(any())
+            }
+        }
+
+        @Test
+        fun `should throw exception when refresh token is expired`() {
+            val dto = updateUsersTokensDto()
+            val uuid = UUID.randomUUID()
+
+            every { jwtUtil.verifyToken(dto.accessToken, any<UUID>(), throwTimeLimit = false) } returns false
+            every {
+                jwtUtil.verifyToken(
+                    dto.refreshToken,
+                    any<UUID>(),
+                    throwTimeLimit = true
+                )
+            } throws JwtAuthenticationException("Срок жизни токена истёк.")
+
+            val exception = assertThrows<JwtAuthenticationException> { service.updateTokens(dto, uuid) }
+
+            assertEquals(exception.message, "Срок жизни токена истёк.")
+
+            verify(exactly = 2) { jwtUtil.verifyToken(any(), any<UUID>(), throwTimeLimit = any<Boolean>()) }
+            verify(exactly = 0) {
+                jwtUtil.getUserFromToken(any())
+                jwtUtil.removeOldRefreshTokenByUUID(uuid)
+                jwtUtil.generateAccessToken(any())
+                jwtUtil.generateRefreshToken(any())
+            }
+        }
+
+        @Test
+        fun `should throw exception when tokens are valid, but user doesn't exist`() {
+            val dto = updateUsersTokensDto()
+            val uuid = UUID.randomUUID()
+
+            every { jwtUtil.verifyToken(dto.accessToken, any<UUID>(), throwTimeLimit = false) } returns false
+            every { jwtUtil.verifyToken(dto.refreshToken, any<UUID>(), throwTimeLimit = true) } returns true
+            every { jwtUtil.getUserFromToken(any()) } returns null
+
+            val exception = assertThrows<JwtAuthenticationException> { service.updateTokens(dto, uuid) }
+
+            assertEquals(exception.message, "Неверный refresh-токен.")
+
+            verify(exactly = 2) { jwtUtil.verifyToken(any(), any<UUID>(), throwTimeLimit = any<Boolean>()) }
+            verify { jwtUtil.getUserFromToken(any()) }
+            verify(exactly = 0) {
+                jwtUtil.removeOldRefreshTokenByUUID(uuid)
+                jwtUtil.generateAccessToken(any())
+                jwtUtil.generateRefreshToken(any())
+            }
         }
     }
 }
