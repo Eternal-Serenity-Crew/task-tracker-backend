@@ -12,7 +12,6 @@ plugins {
 }
 
 group = "org.esc"
-version = "0.0.1-SNAPSHOT"
 description = "esc-task-tracker"
 
 java {
