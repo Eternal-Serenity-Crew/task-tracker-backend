@@ -103,8 +103,15 @@ allOpen {
 tasks.withType<Test> {
     useJUnitPlatform()
     jvmArgs("-Xshare:off", "-XX:+EnableDynamicAgentLoading")
+
     testLogging {
         events("passed", "skipped", "failed")
+    }
+
+    filter {
+        if (project.hasProperty("excludeTests")) {
+            excludeTestsMatching(project.property("excludeTests") as String)
+        }
     }
 }
 
