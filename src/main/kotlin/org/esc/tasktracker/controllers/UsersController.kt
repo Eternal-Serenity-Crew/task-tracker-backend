@@ -12,6 +12,40 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.web.bind.annotation.*
 
+/**
+ * REST controller for managing user resources.
+ *
+ * This controller provides HTTP endpoints for CRUD operations on users, implementing
+ * [CrudController] interface for standard operations and adding user-specific endpoints
+ * like email-based lookup. All endpoints are mapped under the "/api/v1/users" base path.
+ *
+ * ## Endpoints Overview:
+ * - **GET /api/v1/users** - Get paginated list of users with optional filters
+ * - **GET /api/v1/users/{id}** - Get a specific user by ID
+ * - **GET /api/v1/users/getByEmail/{email}** - Get a user by email address
+ * - **POST /api/v1/users** - Create a new user
+ * - **PATCH /api/v1/users** - Update an existing user
+ * - **DELETE /api/v1/users** - Delete all users
+ * - **DELETE /api/v1/users/{id}** - Delete a specific user by ID
+ *
+ * ## Validation:
+ * Request bodies are validated using [@Valid] annotations, ensuring that
+ * incoming data meets the constraints defined in the DTOs.
+ *
+ * @param usersService Service layer for user operations
+ *
+ * @see RestController
+ * @see RequestMapping
+ * @see CrudController
+ * @see UsersService
+ * @see Users
+ * @see CreateUserDto
+ * @see UpdateUserDto
+ * @see UsersFilterDto
+ *
+ * @author Vladimir Fokin
+ * @since 1.0
+ */
 @RestController
 @RequestMapping("/api/v1/users")
 class UsersController(private val usersService: UsersService) :

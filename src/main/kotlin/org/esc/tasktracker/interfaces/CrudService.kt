@@ -5,6 +5,24 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 
+/**
+ * Base interface for CRUD services.
+ *
+ * @param T The entity type being managed.
+ * @param ID The type of the entity's identifier.
+ * @param CrDTO The DTO type for create operations.
+ * @param UpDTO The DTO type for update operations.
+ * @param Filters The DTO type for filtering requests.
+ *
+ * @property repository The JPA repository for the entity type.
+ *
+ * @see CrudController
+ * @see FilterDtoClass
+ * @see NotFoundException
+ *
+ * @author Vladimir Fokin
+ * @since 1.0
+ */
 interface CrudService<T : Any, ID : Any, CrDTO : Any, UpDTO : Any, Filters : FilterDtoClass> {
     val repository: JpaRepository<T, ID>
 
