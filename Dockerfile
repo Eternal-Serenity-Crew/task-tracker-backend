@@ -1,4 +1,4 @@
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:21-jre-alpine
 ARG VERSION
 
 COPY build/libs/task-tracker-${VERSION}.jar app.jar
