@@ -6,6 +6,16 @@ on:
       - main
 
 jobs:
+  debug-secrets:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Debug secrets
+        run: |
+          echo "USER: ${{ secrets.DOCKERHUB_USERNAME || '***MISSING***' }}"
+          echo "IMAGE: ${{ secrets.DOCKER_IMAGE_NAME || '***MISSING***' }}" 
+          echo "VER: ${{ steps.extract_version.outputs.version }}"
+
   build-and-push:
     runs-on: ubuntu-latest
 
