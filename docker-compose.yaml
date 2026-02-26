@@ -12,11 +12,25 @@ services:
     ports:
       - "5432:5432"
     networks:
-      - backend-net
+      - esc-net
+
+  esc-task-tracker:
+    container_name: task-tracker
+    image: scobca/task-tracker:latest
+    restart: always
+    ports:
+      - "8080:8080"
+    volumes:
+      - esc-task-tracker-data:/var/
+    env_file:
+      - ./.env
+    networks:
+      - esc-net
 
 volumes:
   task-tracker-postgres-data:
+  esc-task-tracker-data:
 
 networks:
-  backend-net:
+  esc-net:
     driver: bridge

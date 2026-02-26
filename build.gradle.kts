@@ -12,7 +12,6 @@ plugins {
 }
 
 group = "org.esc"
-version = "0.0.1-SNAPSHOT"
 description = "esc-task-tracker"
 
 java {
@@ -103,8 +102,15 @@ allOpen {
 tasks.withType<Test> {
     useJUnitPlatform()
     jvmArgs("-Xshare:off", "-XX:+EnableDynamicAgentLoading")
+
     testLogging {
         events("passed", "skipped", "failed")
+    }
+
+    filter {
+        if (project.hasProperty("excludeTests")) {
+            excludeTestsMatching(project.property("excludeTests") as String)
+        }
     }
 }
 
