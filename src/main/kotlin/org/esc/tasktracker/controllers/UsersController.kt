@@ -53,7 +53,7 @@ class UsersController(private val usersService: UsersService) :
 
     @GetMapping
     override fun getAll(
-        filters: UsersFilterDto,
+        @ModelAttribute filters: UsersFilterDto,
         pageable: Pageable
     ): Page<Users> = usersService.getAll(filters, pageable)
 
