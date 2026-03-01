@@ -28,7 +28,7 @@ import java.time.Instant
  * @param description An optional detailed description of the team's purpose,
  *                    goals, or rules. Stored as TEXT in the database to allow
  *                    for longer content.
- * @param ownerId The user who owns or created the team. This establishes a
+ * @param owner The user who owns or created the team. This establishes a
  *                many-to-one relationship with the [Users] entity.
  * @param createdAt Timestamp when the team record was created.
  *                  Automatically set by [AuditingEntityListener].
@@ -72,7 +72,7 @@ data class Teams(
     @JsonIgnore
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "owner_id", nullable = false)
-    var ownerId: Users,
+    var owner: Users,
 
     @CreatedDate
     var createdAt: Instant?,

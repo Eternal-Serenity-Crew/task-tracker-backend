@@ -73,5 +73,5 @@ data class Users(
 
     @JsonIgnore
     @OneToMany(mappedBy = "ownerId", cascade = [CascadeType.ALL], orphanRemoval = true)
-    val events: MutableList<Teams>? = mutableListOf(),
+    val teams: MutableList<Teams>? = mutableListOf(),
 )
