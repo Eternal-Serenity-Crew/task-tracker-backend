@@ -58,11 +58,25 @@ jobs:
               fi
             "
 
+      - name: Extract version
+        id: extract_version
+        run: |
+          if [ "${{ github.event.inputs.version }}" != "" ]; then
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=latest" >> $GITHUB_OUTPUT
+          fi
+
       - name: Trigger notification workflow
         if: success()
         uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.PAT_TOKEN }}
           event-type: successful-deployment
-          client-payload: '{"version": "${{ steps.extract_version.outputs.version }}"}'
+          client-payload: |
+            {
+              "version": "${{ steps.extract_version.outputs.version }}",
+              "actor": "${{ github.actor }}",
+              "repo": "${{ github.repository }}"
+            }
       
