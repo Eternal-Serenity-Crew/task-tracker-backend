@@ -19,4 +19,3 @@ jobs:
             🔗 ${{ github.server_url }}/${{ github.event.client_payload.repo }}/actions
             
             #deployment
-            #${{ secrets.DOCKER_IMAGE_NAME }} #v${{github.event.client_payload.version}}
