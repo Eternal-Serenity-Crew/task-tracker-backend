@@ -61,8 +61,12 @@ jobs:
       - name: Extract version
         id: extract_version
         run: |
-          if [ "${{ github.event.inputs.version }}" != "" ]; then
+          if [ "${{ github.event.client_payload.version }}" != "" ]; then
+            echo "version=${{ github.event.client_payload.version }}" >> $GITHUB_OUTPUT
+            echo "Using version from build: ${{ github.event.client_payload.version }}"
+          elif [ "${{ github.event.inputs.version }}" != "" ]; then
             echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+            echo "Using manual version: ${{ github.event.inputs.version }}"
           else
             echo "version=latest" >> $GITHUB_OUTPUT
           fi
