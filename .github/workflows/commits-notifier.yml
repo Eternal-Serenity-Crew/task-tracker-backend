@@ -32,3 +32,6 @@ jobs:
             ${{ steps.prepare.outputs.commit_list }}
 
             🔗 ${{ github.server_url }}/${{ github.repository }}/commits/${{ github.ref_name }}
+            
+            #commit
+            #${{ github.repository }}
