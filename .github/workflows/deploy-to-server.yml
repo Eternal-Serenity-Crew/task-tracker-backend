@@ -25,4 +25,46 @@ jobs:
         run: ssh -i key.pem -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p 22 ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "echo '✅ SSH работает!'"
 
       - name: Deploy esc-task-tracker
-        run: ssh -i key.pem -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p 22 ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "cd ~/esc-task-tracker && cp .env .env.backup.\$(date +%Y%m%d_%H%M%S) || true && sed -i 's|scobca/task-tracker:[^ ]*|scobca/task-tracker:${{ steps.version.outputs.version }}|' docker-compose.yaml && docker-compose pull esc-task-tracker && docker-compose stop esc-task-tracker && docker-compose up -d --force-recreate esc-task-tracker && sleep 15 && if docker-compose ps esc-task-tracker | grep -q 'Up'; then echo '✅ Deployed v${{ steps.version.outputs.version }}'; else echo '❌ Failed'; exit 1; fi && docker-compose logs --tail=10 esc-task-tracker"
+        env:
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          echo "$SERVER_SSH_KEY" > key.pem
+          chmod 600 key.pem
+
+          ssh -i key.pem -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+            -p 22 "$SERVER_USER@$SERVER_HOST" "
+              echo '✅ Deploying v$VERSION';
+              cd ~/esc-task-tracker || exit 1;
+
+              # Backup
+              cp .env .env.backup.\$(date +%Y%m%d_%H%M%S) || true;
+
+              # Debug: текущая строка image
+              echo '=== BEFORE ===';
+              grep 'image:.*task-tracker' docker-compose.yaml;
+
+              # sed: точно меняем ТОЛЬКО image строку esc-task-tracker
+              sed -i '/esc-task-tracker:/,/^ *image: /s|:.*task-tracker:.*|:scobca/task-tracker:'$VERSION'|' docker-compose.yaml;
+
+              # Debug: новая строка
+              echo '=== AFTER ===';
+              grep 'image:.*task-tracker' docker-compose.yaml;
+
+              # Тест YAML
+              docker-compose config || exit 1;
+
+              docker-compose pull esc-task-tracker;
+              docker-compose stop esc-task-tracker;
+              docker-compose up -d --force-recreate esc-task-tracker;
+              sleep 15;
+
+              if docker-compose ps esc-task-tracker | grep -q 'Up'; then 
+                echo '✅ Deployed v$VERSION';
+                docker-compose logs --tail=10 esc-task-tracker;
+              else 
+                echo '❌ Failed'; exit 1; 
+              fi
+            "
