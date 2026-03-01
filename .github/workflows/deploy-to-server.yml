@@ -23,47 +23,37 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Deploying version: $VERSION"
 
-      - name: Deploy to server
+      - name: Create SSH key
         run: |
           echo '${{ secrets.SERVER_SSH_KEY }}' > key.pem
           chmod 600 key.pem
-          
-          ssh -i key.pem -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-            -p 22 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} '
-          
-            echo "Deploying esc-task-tracker v${{ steps.version.outputs.version }}..."
-          
-            cd ~/esc-task-tracker || { echo "Folder not found"; exit 1; }
-          
-            cp .env .env.backup.$(date +%Y%m%d_%H%M%S) || true
-          
-            sed -i "s|scobca/task-tracker:[^ ]*|scobca/task-tracker:${{ steps.version.outputs.version }}|" docker-compose.yaml
-          
-            echo "Pull images..."
-            docker-compose pull esc-task-tracker
-          
-            echo "Graceful shutdown..."
-            docker-compose stop esc-task-tracker
-          
-            echo "Restart service..."
-            docker-compose up -d --force-recreate esc-task-tracker
-          
-            echo "Status check..."
-            sleep 15
-            docker-compose ps esc-task-tracker
-          
-            docker-compose logs --tail=20 esc-task-tracker
-          
-            # Health check (ИСПРАВЛЕНО!)
-            if docker-compose ps esc-task-tracker | grep -q "Up"; then
-              echo "✅ Successfully deployed"
-            else
-              echo "❌ Error occurred"
-              exit 1
-            fi
-          
-            echo "Using ports:"
-            ss -tuln | grep -E ":(8080|5432)"
-          '
-        env:
-          VERSION: ${{ steps.version.outputs.version }}
+          ls -la key.pem  # debug
+
+      - name: Deploy to server
+        run: |
+          ssh -i key.pem \
+            -o StrictHostKeyChecking=no \
+            -o UserKnownHostsFile=/dev/null \
+            -p 22 \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} \
+            "echo 'Connected! Deploying v${{ steps.version.outputs.version }}...' && \
+             cd ~/esc-task-tracker || { echo 'Folder not found'; exit 1; } && \
+             cp .env .env.backup.\$(date +%Y%m%d_%H%M%S) || true && \
+             sed -i 's|scobca/task-tracker:[^ ]*|scobca/task-tracker:${{ steps.version.outputs.version }}|' docker-compose.yaml && \
+             echo 'Pull images...' && \
+             docker-compose pull esc-task-tracker && \
+             echo 'Graceful shutdown...' && \
+             docker-compose stop esc-task-tracker && \
+             echo 'Restart service...' && \
+             docker-compose up -d --force-recreate esc-task-tracker && \
+             echo 'Status check...' && \
+             sleep 15 && \
+             docker-compose ps esc-task-tracker && \
+             docker-compose logs --tail=20 esc-task-tracker && \
+             if docker-compose ps esc-task-tracker | grep -q 'Up'; then \
+               echo '✅ Successfully deployed'; \
+             else \
+               echo '❌ Error occurred'; exit 1; \
+             fi && \
+             echo 'Using ports:' && \
+             ss -tuln | grep -E ':(8080|5432)'"
