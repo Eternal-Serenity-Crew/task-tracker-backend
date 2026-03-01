@@ -72,6 +72,6 @@ data class Users(
     var updatedAt: Instant?,
 
     @JsonIgnore
-    @OneToMany(mappedBy = "ownerId", cascade = [CascadeType.ALL], orphanRemoval = true)
+    @OneToMany(mappedBy = "owner", cascade = [CascadeType.ALL], orphanRemoval = true)
     val teams: MutableList<Teams>? = mutableListOf(),
 )
