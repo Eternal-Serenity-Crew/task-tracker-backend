@@ -52,7 +52,7 @@ jobs:
               sleep 15;
               if docker compose ps esc-task-tracker | grep -q 'Up'; then 
                 echo 'Deployed latest';
-                docker-compose logs --tail=10 esc-task-tracker;
+                docker compose logs --tail=10 esc-task-tracker;
               else 
                 echo 'Failed'; exit 1; 
               fi
