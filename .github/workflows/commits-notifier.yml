@@ -13,8 +13,8 @@ jobs:
           COUNT=$(echo "$COMMITS_JSON" | jq length)
           
           COMMIT_LIST=$(echo "$COMMITS_JSON" | \
-          jq -r '.[] | "- " + (."message" | split("\n")[0])' | \
-          tr '\n' '\\n' | sed 's/\\\\n/\\n/g')
+            jq -r '.[] | "- " + (."message" | split("\n")[0])' | \
+            tr '\n' '\\n')
           
           echo "count=$COUNT" >> $GITHUB_OUTPUT
           echo "commit_list=$COMMIT_LIST" >> $GITHUB_OUTPUT
@@ -25,8 +25,8 @@ jobs:
           to: ${{ secrets.CHAT_ID }}
           token: ${{ secrets.BOT_TOKEN }}
           message: |
-            ${{ github.actor }} has pushed ${{ steps.count.outputs.count }} commit(-s) to ${{ github.ref_name }}
-            
-            ${{ steps.count.outputs.commits }}
-            
+            ${{ github.actor }} has pushed ${{ steps.prepare.outputs.count }} commit(-s) to ${{ github.ref_name }}
+
+            ${{ steps.prepare.outputs.commit_list }}
+
             🔗 ${{ github.server_url }}/${{ github.repository }}/commits/${{ github.ref_name }}
