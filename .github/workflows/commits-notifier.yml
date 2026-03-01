@@ -17,7 +17,7 @@ jobs:
           to: ${{ secrets.CHAT_ID }}
           token: ${{ secrets.BOT_TOKEN }}
           message: |
-            ${{ github.actor }} has pushed ${{ steps.count.outputs.count }} commits to ${{ github.ref_name }}
+            ${{ github.actor }} has pushed ${{ steps.count.outputs.count }} commit(-s) to ${{ github.ref_name }}
 
             ${{ steps.count.outputs.commits }}
 
