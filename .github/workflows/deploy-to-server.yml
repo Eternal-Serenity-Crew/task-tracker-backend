@@ -26,7 +26,7 @@ jobs:
 
       - name: Deploy esc-task-tracker
         env:
-          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_USER: ${{ secrets.SERVER_USERNAME }}
           SERVER_HOST: ${{ secrets.SERVER_HOST }}
           SERVER_SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
         run: |
@@ -35,27 +35,26 @@ jobs:
 
           ssh -i key.pem -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
             -p 22 "$SERVER_USER@$SERVER_HOST" "
-              echo '✅ Deploying latest esc-task-tracker...';
+              echo 'Deploying latest esc-task-tracker...';
               cd ~/esc-task-tracker || exit 1;
 
-              # Backup .env (на всякий)
+              # Backup .env
               cp .env .env.backup.\$(date +%Y%m%d_%H%M%S) || true;
 
-              # КЛЮЧЕВОЕ: pull ТОЛЬКО esc-task-tracker (postgres НЕ тронется)
               docker-compose pull esc-task-tracker;
 
-              # Graceful stop ТОЛЬКО app
+              # Graceful stop only app
               docker-compose stop esc-task-tracker;
 
-              # Recreate ТОЛЬКО app с новым образом
+              # Recreate only app
               docker-compose up -d --force-recreate esc-task-tracker;
 
               sleep 15;
               if docker-compose ps esc-task-tracker | grep -q 'Up'; then 
-                echo '✅ Deployed latest';
+                echo 'Deployed latest';
                 docker-compose logs --tail=10 esc-task-tracker;
               else 
-                echo '❌ Failed'; exit 1; 
+                echo 'Failed'; exit 1; 
               fi
             "
       
