@@ -1,4 +1,4 @@
-name: commits-notifier.yml
+name: Create commits notification
 on: [ push ]
 
 jobs:
