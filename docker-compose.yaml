@@ -16,7 +16,7 @@ services:
 
   esc-task-tracker:
     container_name: task-tracker
-    image: scobca/task-tracker:latest
+    image: scobca/esc-task-tracker:latest
     restart: always
     ports:
       - "8080:8080"
