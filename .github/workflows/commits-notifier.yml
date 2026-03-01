@@ -14,10 +14,12 @@ jobs:
           
           COMMIT_LIST=$(echo "$COMMITS_JSON" | \
             jq -r '.[] | "- " + (."message" | split("\n")[0])' | \
-            tr '\n' '\\n')
+            paste -sd '\n' -)
           
           echo "count=$COUNT" >> $GITHUB_OUTPUT
-          echo "commit_list=$COMMIT_LIST" >> $GITHUB_OUTPUT
+          echo "commit_list<<EOF" >> $GITHUB_OUTPUT
+          echo "$COMMIT_LIST" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Send TG message
         uses: appleboy/telegram-action@master
