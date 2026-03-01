@@ -1,0 +1,25 @@
+name: deploy-notifier.yml
+on:
+  repository_dispatch:
+    types: [ successful-deployment ]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Версия образа (по умолчанию latest)'
+        required: false
+        default: 'latest'
+        type: string
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send TG message
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.CHAT_ID }}
+          token: ${{ secrets.BOT_TOKEN }}
+          message: |
+            ${{ github.actor }} has deployed version v${{ inputs.version }} on the server
+
+            🔗 ${{ github.server_url }}/${{ github.repository }}

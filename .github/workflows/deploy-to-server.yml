@@ -57,4 +57,12 @@ jobs:
                 echo 'Failed'; exit 1; 
               fi
             "
+
+      - name: Trigger notification workflow
+        if: success()
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
+          event-type: successful-deployment
+          client-payload: '{"version": "${{ steps.extract_version.outputs.version }}"}'
       
