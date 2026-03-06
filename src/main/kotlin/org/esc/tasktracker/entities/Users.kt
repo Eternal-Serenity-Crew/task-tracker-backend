@@ -74,4 +74,8 @@ data class Users(
     @JsonIgnore
     @OneToMany(mappedBy = "owner", cascade = [CascadeType.ALL], orphanRemoval = true)
     val teams: MutableList<Teams>? = mutableListOf(),
-)
+) {
+    override fun toString(): String {
+        return "Users(id=$id, name='$name', email='$email', password='$password', createdAt=$createdAt, updatedAt=$updatedAt)"
+    }
+}
