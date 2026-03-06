@@ -61,11 +61,14 @@ class TeamsController(private val service: TeamsService) :
     override fun getById(@PathVariable id: Long): Teams =
         service.getById(id, throwable = true, message = "Команда с ID $id не найдена.")!!
 
+    @GetMapping("/getByOwnerId/{userId}")
+    fun getByOwner(@PathVariable userId: Long, pageable: Pageable): Page<Teams> = service.getByUserId(userId, pageable)
+
     @PostMapping
     override fun create(@RequestBody item: CreateTeamDto): Teams = service.create(item)
 
     @PatchMapping
-    override fun update(item: UpdateTeamDto): Teams = service.update(item)
+    override fun update(@RequestBody item: UpdateTeamDto): Teams = service.update(item)
 
     @DeleteMapping
     override fun deleteAll(): BasicSuccessfulResponse<String> = service.deleteAll().toHttpResponse()
