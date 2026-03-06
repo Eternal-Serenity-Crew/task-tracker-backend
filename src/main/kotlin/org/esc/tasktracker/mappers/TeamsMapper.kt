@@ -11,6 +11,7 @@ import org.mapstruct.Mappings
 fun interface TeamsMapper {
 
     @Mappings(
+        Mapping(target = "id", ignore = true),
         Mapping(target = "owner", source = "user"),
         Mapping(target = "name", source = "dto.name"),
     )
