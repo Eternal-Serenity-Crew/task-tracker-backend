@@ -1,11 +1,14 @@
 package org.esc.tasktracker.entities
 
+import com.fasterxml.jackson.annotation.JsonIgnore
+import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EntityListeners
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
+import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import org.esc.tasktracker.annotations.NotTrimmable
 import org.esc.tasktracker.io.TrimEntityListener
@@ -67,4 +70,12 @@ data class Users(
 
     @LastModifiedDate
     var updatedAt: Instant?,
-)
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "owner", cascade = [CascadeType.ALL], orphanRemoval = true)
+    val teams: MutableList<Teams>? = mutableListOf(),
+) {
+    override fun toString(): String {
+        return "Users(id=$id, name='$name', email='$email', createdAt=$createdAt, updatedAt=$updatedAt)"
+    }
+}
