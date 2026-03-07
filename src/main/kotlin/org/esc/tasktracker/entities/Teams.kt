@@ -61,7 +61,7 @@ data class Teams(
     var description: String? = null,
 
     @JsonIgnore
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id", nullable = false)
     var owner: Users,
 
