@@ -76,6 +76,6 @@ data class Users(
     val teams: MutableList<Teams>? = mutableListOf(),
 ) {
     override fun toString(): String {
-        return "Users(id=$id, name='$name', email='$email', password='$password', createdAt=$createdAt, updatedAt=$updatedAt)"
+        return "Users(id=$id, name='$name', email='$email', createdAt=$createdAt, updatedAt=$updatedAt)"
     }
 }
