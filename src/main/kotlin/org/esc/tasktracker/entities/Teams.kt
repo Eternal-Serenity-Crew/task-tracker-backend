@@ -70,6 +70,9 @@ data class Teams(
 
     @LastModifiedDate
     var updatedAt: Instant?,
+
+    @OneToMany(mappedBy = "team", cascade = [CascadeType.ALL], orphanRemoval = true)
+    val teamMemberships: MutableSet<TeamMembership> = mutableSetOf()
 ) {
     val ownerId: Long
         get() = owner.id
