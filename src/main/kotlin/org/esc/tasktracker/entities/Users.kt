@@ -61,6 +61,7 @@ data class Users(
     @Column(nullable = false, unique = true)
     var email: String,
 
+    @JsonIgnore
     @NotTrimmable
     @Column(nullable = false)
     var password: String,
@@ -75,6 +76,7 @@ data class Users(
     @OneToMany(mappedBy = "owner", cascade = [CascadeType.ALL], orphanRemoval = true)
     val teams: MutableList<Teams>? = mutableListOf(),
 
+    @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = [CascadeType.ALL], orphanRemoval = true)
     val teamMemberships: MutableSet<TeamMembership> = mutableSetOf()
 ) {

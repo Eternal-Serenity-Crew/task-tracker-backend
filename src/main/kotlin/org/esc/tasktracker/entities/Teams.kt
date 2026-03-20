@@ -71,6 +71,7 @@ data class Teams(
     @LastModifiedDate
     var updatedAt: Instant?,
 
+    @JsonIgnore
     @OneToMany(mappedBy = "team", cascade = [CascadeType.ALL], orphanRemoval = true)
     val teamMemberships: MutableSet<TeamMembership> = mutableSetOf()
 ) {
