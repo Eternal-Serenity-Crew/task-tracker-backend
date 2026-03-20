@@ -2,7 +2,6 @@ package org.esc.tasktracker.mappers
 
 import org.esc.tasktracker.dto.teams.CreateTeamDto
 import org.esc.tasktracker.entities.TeamMembership
-import org.esc.tasktracker.entities.TeamMembershipId
 import org.esc.tasktracker.entities.Teams
 import org.esc.tasktracker.entities.Users
 import org.esc.tasktracker.enums.TeamRoles
@@ -21,12 +20,12 @@ interface TeamsMapper {
     fun teamFromDto(dto: CreateTeamDto, user: Users): Teams
 
     @Mappings(
-        Mapping(target = "id", source = "id"),
         Mapping(target = "user", source = "user"),
         Mapping(target = "team", source = "team"),
         Mapping(target = "role", source = "role"),
+        Mapping(target = "id", ignore = true),
         Mapping(target = "createdAt", ignore = true),
         Mapping(target = "updatedAt", ignore = true),
     )
-    fun teamMembershipFromDto(id: TeamMembershipId, user: Users, team: Teams, role: TeamRoles): TeamMembership
+    fun teamMembershipFromDto(user: Users, team: Teams, role: TeamRoles): TeamMembership
 }

@@ -44,7 +44,7 @@ class TeamMembershipService(
         val user = usersService.getById(item.userId, message = DefaultExceptionMessages.USER_NOT_FOUND.getMessage())!!
         val team = teamsService.getById(item.teamId, message = DefaultExceptionMessages.TEAM_NOT_FOUND.getMessage())!!
 
-        return repository.save(teamsMapper.teamMembershipFromDto(item.getTeamMembershipId(), user, team, item.role))
+        return repository.save(teamsMapper.teamMembershipFromDto(user, team, item.role))
     }
 
     @Transactional
