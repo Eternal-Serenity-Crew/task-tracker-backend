@@ -8,7 +8,6 @@ import org.esc.tasktracker.enums.DefaultExceptionMessages
 import org.esc.tasktracker.enums.DefaultExceptionMessages.Companion.getMessage
 import org.esc.tasktracker.exceptions.DoubleRecordException
 import org.esc.tasktracker.exceptions.NotFoundException
-import org.esc.tasktracker.extensions.takeIfOrThrow
 import org.esc.tasktracker.interfaces.CrudService
 import org.esc.tasktracker.mappers.TeamsMapper
 import org.esc.tasktracker.repositories.TeamMembershipRepository
@@ -69,13 +68,9 @@ class TeamMembershipService(
 
     @Transactional
     override fun deleteById(id: Long): String {
-        return repository.findById(id)
-            .takeIfOrThrow(
-                predicate = { it.isPresent },
-                exception = { throw NotFoundException(DefaultExceptionMessages.TEAM_MEMBERSHIP_NOT_FOUND.getMessage()) }
-            )
+        return getById(id, throwable = true, message = DefaultExceptionMessages.TEAM_MEMBERSHIP_NOT_FOUND.getMessage())!!
             .let {
-                repository.delete(it.get())
+                repository.delete(it)
                 "Участник команды удален."
             }
     }
