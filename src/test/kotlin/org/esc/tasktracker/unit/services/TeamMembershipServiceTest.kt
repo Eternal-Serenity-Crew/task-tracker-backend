@@ -6,6 +6,7 @@ import org.esc.tasktracker.entities.TeamMembership
 import org.esc.tasktracker.enums.DefaultExceptionMessages
 import org.esc.tasktracker.enums.DefaultExceptionMessages.Companion.getMessage
 import org.esc.tasktracker.enums.TeamRoles
+import org.esc.tasktracker.exceptions.DoubleRecordException
 import org.esc.tasktracker.exceptions.NotFoundException
 import org.esc.tasktracker.mappers.TeamsMapper
 import org.esc.tasktracker.repositories.TeamMembershipRepository
@@ -15,6 +16,8 @@ import org.esc.tasktracker.services.TeamsService
 import org.esc.tasktracker.services.UsersService
 import org.esc.tasktracker.unit.generators.createTeam
 import org.esc.tasktracker.unit.generators.createTeamMembership
+import org.esc.tasktracker.unit.generators.createTeamMembershipCreateDto
+import org.esc.tasktracker.unit.generators.createTeamMembershipUpdateDto
 import org.esc.tasktracker.unit.generators.createUser
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
@@ -155,6 +158,150 @@ class TeamMembershipServiceTest {
             val exception = assertFailsWith<NotFoundException> { service.getById(userId = 1, teamId = 1) }
 
             verify { repository.findByUserIdAndTeamId(any(), any()) }
+            assertEquals(exception.message, DefaultExceptionMessages.TEAM_MEMBERSHIP_NOT_FOUND.getMessage())
+        }
+    }
+
+    @Nested
+    inner class CreateTests {
+
+        @Test
+        fun `should create new team membership`() {
+            val user = createUser(id = 1)
+            val team = createTeam(id = 1)
+            val dto = createTeamMembershipCreateDto(userId = user.id, teamId = team.id)
+            val teamMembership = createTeamMembership()
+
+            every { repository.findByUserIdAndTeamId(any(), any()) } returns null
+            every {
+                usersService.getById(
+                    any(),
+                    throwable = any(),
+                    message = DefaultExceptionMessages.USER_NOT_FOUND.getMessage()
+                )
+            } returns user
+            every {
+                teamsService.getById(
+                    any(),
+                    throwable = any(),
+                    message = DefaultExceptionMessages.TEAM_NOT_FOUND.getMessage()
+                )
+            } returns team
+            every { teamsMapper.teamMembershipFromDto(any(), any(), any()) } returns teamMembership
+            every { repository.save(any()) } returns teamMembership
+
+            val result = service.create(dto)
+
+            verify {
+                repository.findByUserIdAndTeamId(any(), any())
+                usersService.getById(any(), any(), any())
+                teamsService.getById(any(), any(), any())
+                teamsMapper.teamMembershipFromDto(any(), any(), any())
+                repository.save(any())
+            }
+            assertEquals(teamMembership, result)
+        }
+
+        @Test
+        fun `should throw DoubleRecord exception when similar combination of userID and teamID already saved`() {
+            val dto = createTeamMembershipCreateDto()
+            val teamMembership = createTeamMembership()
+
+            every { repository.findByUserIdAndTeamId(any(), any()) } returns teamMembership
+
+            val exception = assertFailsWith<DoubleRecordException> { service.create(dto) }
+
+            verify { repository.findByUserIdAndTeamId(any(), any()) }
+            verify(exactly = 0) {
+                usersService.getById(any(), any(), any())
+                teamsService.getById(any(), any(), any())
+                teamsMapper.teamMembershipFromDto(any(), any(), any())
+                repository.save(any())
+            }
+            assertEquals(exception.message, DefaultExceptionMessages.TEAM_MEMBERSHIP_DOUBLE_RECORD.getMessage())
+        }
+
+        @Test
+        fun `should throw NotFoundException when user not found`() {
+            val dto = createTeamMembershipCreateDto()
+            val teamMembership = createTeamMembership()
+
+            every { repository.findByUserIdAndTeamId(any(), any()) } returns null
+            every { usersService.getById(any(), any(), any()) } throws NotFoundException(DefaultExceptionMessages.USER_NOT_FOUND.getMessage())
+
+            val exception = assertFailsWith<NotFoundException> { service.create(dto) }
+
+            verify {
+                repository.findByUserIdAndTeamId(any(), any())
+                usersService.getById(any(), any(), any())
+            }
+            verify(exactly = 0) {
+                teamsService.getById(any(), any(), any())
+                teamsMapper.teamMembershipFromDto(any(), any(), any())
+                repository.save(any())
+            }
+            assertEquals(exception.message, DefaultExceptionMessages.USER_NOT_FOUND.getMessage())
+        }
+
+        @Test
+        fun `should throw NotFoundException when team not found`() {
+            val user = createUser()
+            val dto = createTeamMembershipCreateDto()
+            val teamMembership = createTeamMembership()
+
+            every { repository.findByUserIdAndTeamId(any(), any()) } returns null
+            every { usersService.getById(any(), any(), any()) } returns user
+            every { teamsService.getById(any(), any(), any()) } throws NotFoundException(DefaultExceptionMessages.TEAM_NOT_FOUND.getMessage())
+
+            val exception = assertFailsWith<NotFoundException> { service.create(dto) }
+
+            verify {
+                repository.findByUserIdAndTeamId(any(), any())
+                usersService.getById(any(), any(), any())
+                teamsService.getById(any(), any(), any())
+            }
+            verify(exactly = 0) {
+                teamsMapper.teamMembershipFromDto(any(), any(), any())
+                repository.save(any())
+            }
+            assertEquals(exception.message, DefaultExceptionMessages.TEAM_NOT_FOUND.getMessage())
+        }
+    }
+
+    @Nested
+    inner class UpdateTests {
+
+        @Test
+        fun `should update team membership role`() {
+            val user = createUser(id = 1)
+            val team = createTeam(id = 1)
+            val dto = createTeamMembershipUpdateDto(userId = user.id, teamId = team.id, role = TeamRoles.ADMIN)
+            val teamMembershipOld = createTeamMembership(role = TeamRoles.MEMBER)
+            val teamMembershipNew = createTeamMembership(role = TeamRoles.ADMIN)
+
+
+            every { serviceSpy.getById(any<Long>(), any<Long>()) } returns teamMembershipOld
+            every { repository.save(any()) } returns teamMembershipNew
+
+            val result = serviceSpy.update(dto)
+
+            verify {
+                serviceSpy.getById(any<Long>(), any<Long>())
+                repository.save(any())
+            }
+            assertEquals(teamMembershipNew, result)
+        }
+
+        @Test
+        fun `should throw NotFoundException when team membership not found`() {
+            val dto = createTeamMembershipUpdateDto()
+
+            every { serviceSpy.getById(any<Long>(), any<Long>()) } throws NotFoundException(DefaultExceptionMessages.TEAM_MEMBERSHIP_NOT_FOUND.getMessage())
+
+            val exception = assertFailsWith<NotFoundException> { serviceSpy.update(dto) }
+
+            verify { serviceSpy.getById(any<Long>(), any<Long>()) }
+            verify(exactly = 0) { repository.save(any()) }
             assertEquals(exception.message, DefaultExceptionMessages.TEAM_MEMBERSHIP_NOT_FOUND.getMessage())
         }
     }
