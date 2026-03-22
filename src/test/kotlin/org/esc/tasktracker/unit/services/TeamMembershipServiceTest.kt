@@ -224,7 +224,6 @@ class TeamMembershipServiceTest {
         @Test
         fun `should throw NotFoundException when user not found`() {
             val dto = createTeamMembershipCreateDto()
-            val teamMembership = createTeamMembership()
 
             every { repository.findByUserIdAndTeamId(any(), any()) } returns null
             every { usersService.getById(any(), any(), any()) } throws NotFoundException(DefaultExceptionMessages.USER_NOT_FOUND.getMessage())
@@ -247,7 +246,6 @@ class TeamMembershipServiceTest {
         fun `should throw NotFoundException when team not found`() {
             val user = createUser()
             val dto = createTeamMembershipCreateDto()
-            val teamMembership = createTeamMembership()
 
             every { repository.findByUserIdAndTeamId(any(), any()) } returns null
             every { usersService.getById(any(), any(), any()) } returns user
