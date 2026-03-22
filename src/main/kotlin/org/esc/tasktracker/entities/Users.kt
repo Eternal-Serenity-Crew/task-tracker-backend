@@ -61,6 +61,7 @@ data class Users(
     @Column(nullable = false, unique = true)
     var email: String,
 
+    @JsonIgnore
     @NotTrimmable
     @Column(nullable = false)
     var password: String,
@@ -74,6 +75,10 @@ data class Users(
     @JsonIgnore
     @OneToMany(mappedBy = "owner", cascade = [CascadeType.ALL], orphanRemoval = true)
     val teams: MutableList<Teams>? = mutableListOf(),
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "user", cascade = [CascadeType.ALL], orphanRemoval = true)
+    val teamMemberships: MutableSet<TeamMembership> = mutableSetOf()
 ) {
     override fun toString(): String {
         return "Users(id=$id, name='$name', email='$email', createdAt=$createdAt, updatedAt=$updatedAt)"

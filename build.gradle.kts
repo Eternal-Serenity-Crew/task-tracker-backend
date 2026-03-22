@@ -12,7 +12,7 @@ plugins {
 }
 
 group = "org.esc"
-description = "esc-task-tracker"
+description = "task-tracker"
 
 java {
     toolchain {
