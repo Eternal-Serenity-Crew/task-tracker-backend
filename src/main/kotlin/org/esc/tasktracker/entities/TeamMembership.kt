@@ -69,7 +69,7 @@ data class TeamMembership(
     val team: Teams,
 
     @Enumerated(EnumType.STRING)
-    val role: TeamRoles = TeamRoles.MEMBER,
+    var role: TeamRoles = TeamRoles.MEMBER,
 
     @CreatedDate
     var createdAt: Instant?,

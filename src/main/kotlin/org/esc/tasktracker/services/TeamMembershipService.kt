@@ -2,10 +2,14 @@ package org.esc.tasktracker.services
 
 import org.esc.tasktracker.dto.filters.TeamMembershipFilterDto
 import org.esc.tasktracker.dto.teams.CreateTeamMembershipDto
+import org.esc.tasktracker.dto.teams.UpdateTeamMembershipDto
 import org.esc.tasktracker.entities.TeamMembership
 import org.esc.tasktracker.enums.DefaultExceptionMessages
 import org.esc.tasktracker.enums.DefaultExceptionMessages.Companion.getMessage
+import org.esc.tasktracker.exceptions.DoubleRecordException
 import org.esc.tasktracker.exceptions.NotFoundException
+import org.esc.tasktracker.extensions.takeIfOrThrow
+import org.esc.tasktracker.interfaces.CrudService
 import org.esc.tasktracker.mappers.TeamsMapper
 import org.esc.tasktracker.repositories.TeamMembershipRepository
 import org.esc.tasktracker.repositories.specs.TeamMembershipSpecifications
@@ -17,17 +21,18 @@ import org.springframework.transaction.annotation.Transactional
 
 @Service
 class TeamMembershipService(
-    private val repository: TeamMembershipRepository,
+    override val repository: TeamMembershipRepository,
     private val teamsService: TeamsService,
     private val usersService: UsersService,
     private val teamsMapper: TeamsMapper,
     private val specifications: TeamMembershipSpecifications
-) {
-    fun getAll(filters: TeamMembershipFilterDto, pageable: Pageable): Page<TeamMembership> {
+) : CrudService<TeamMembership, Long, CreateTeamMembershipDto, UpdateTeamMembershipDto, TeamMembershipFilterDto> {
+
+    override fun getAll(filters: TeamMembershipFilterDto?, pageable: Pageable): Page<TeamMembership> {
         val specs = listOfNotNull(
-            specifications.hasUserId(filters.userId),
-            specifications.hasTeamId(filters.teamId),
-            specifications.hasTeamRole(filters.teamRole)
+            specifications.hasUserId(filters?.userId),
+            specifications.hasTeamId(filters?.teamId),
+            specifications.hasTeamRole(filters?.teamRole)
         )
 
         return repository.findAll(Specification.allOf(specs), pageable)
@@ -40,11 +45,35 @@ class TeamMembershipService(
     }
 
     @Transactional
-    fun create(item: CreateTeamMembershipDto): TeamMembership {
+    override fun create(item: CreateTeamMembershipDto): TeamMembership {
+        repository.findByUserIdAndTeamId(item.userId, item.teamId)?.let { throw DoubleRecordException("Этот пользователь уже состоит в этой команде.") }
+
         val user = usersService.getById(item.userId, message = DefaultExceptionMessages.USER_NOT_FOUND.getMessage())!!
         val team = teamsService.getById(item.teamId, message = DefaultExceptionMessages.TEAM_NOT_FOUND.getMessage())!!
 
         return repository.save(teamsMapper.teamMembershipFromDto(user, team, item.role))
+    }
+
+    @Transactional
+    override fun update(item: UpdateTeamMembershipDto): TeamMembership {
+        return getById(item.userId, item.teamId)
+            .let {record ->
+                item.role?.let { record.role = it }
+                repository.save(record)
+            }
+    }
+
+    @Transactional
+    override fun deleteById(id: Long): String {
+        return repository.findById(id)
+            .takeIfOrThrow(
+                predicate = { it.isPresent },
+                exception = { throw NotFoundException(DefaultExceptionMessages.TEAM_MEMBERSHIP_NOT_FOUND.getMessage()) }
+            )
+            .let {
+                repository.delete(it.get())
+                "Участник команды удален."
+            }
     }
 
     @Transactional
@@ -62,5 +91,11 @@ class TeamMembershipService(
                 repository.deleteAllByTeam(it)
                 "Все участники команды удалены."
             }
+    }
+
+    @Transactional
+    override fun deleteAll(): String {
+        repository.deleteAll()
+        return "Все записи об участиях в командах удалены."
     }
 }
