@@ -14,11 +14,7 @@ import org.esc.tasktracker.repositories.specs.TeamMembershipSpecifications
 import org.esc.tasktracker.services.TeamMembershipService
 import org.esc.tasktracker.services.TeamsService
 import org.esc.tasktracker.services.UsersService
-import org.esc.tasktracker.unit.generators.createTeam
-import org.esc.tasktracker.unit.generators.createTeamMembership
-import org.esc.tasktracker.unit.generators.createTeamMembershipCreateDto
-import org.esc.tasktracker.unit.generators.createTeamMembershipUpdateDto
-import org.esc.tasktracker.unit.generators.createUser
+import org.esc.tasktracker.unit.generators.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.springframework.data.domain.PageImpl
@@ -226,7 +222,13 @@ class TeamMembershipServiceTest {
             val dto = createTeamMembershipCreateDto()
 
             every { repository.findByUserIdAndTeamId(any(), any()) } returns null
-            every { usersService.getById(any(), any(), any()) } throws NotFoundException(DefaultExceptionMessages.USER_NOT_FOUND.getMessage())
+            every {
+                usersService.getById(
+                    any(),
+                    any(),
+                    any()
+                )
+            } throws NotFoundException(DefaultExceptionMessages.USER_NOT_FOUND.getMessage())
 
             val exception = assertFailsWith<NotFoundException> { service.create(dto) }
 
@@ -249,7 +251,13 @@ class TeamMembershipServiceTest {
 
             every { repository.findByUserIdAndTeamId(any(), any()) } returns null
             every { usersService.getById(any(), any(), any()) } returns user
-            every { teamsService.getById(any(), any(), any()) } throws NotFoundException(DefaultExceptionMessages.TEAM_NOT_FOUND.getMessage())
+            every {
+                teamsService.getById(
+                    any(),
+                    any(),
+                    any()
+                )
+            } throws NotFoundException(DefaultExceptionMessages.TEAM_NOT_FOUND.getMessage())
 
             val exception = assertFailsWith<NotFoundException> { service.create(dto) }
 
@@ -294,7 +302,12 @@ class TeamMembershipServiceTest {
         fun `should throw NotFoundException when team membership not found`() {
             val dto = createTeamMembershipUpdateDto()
 
-            every { serviceSpy.getById(any<Long>(), any<Long>()) } throws NotFoundException(DefaultExceptionMessages.TEAM_MEMBERSHIP_NOT_FOUND.getMessage())
+            every {
+                serviceSpy.getById(
+                    any<Long>(),
+                    any<Long>()
+                )
+            } throws NotFoundException(DefaultExceptionMessages.TEAM_MEMBERSHIP_NOT_FOUND.getMessage())
 
             val exception = assertFailsWith<NotFoundException> { serviceSpy.update(dto) }
 
@@ -303,4 +316,120 @@ class TeamMembershipServiceTest {
             assertEquals(exception.message, DefaultExceptionMessages.TEAM_MEMBERSHIP_NOT_FOUND.getMessage())
         }
     }
+
+    @Nested
+    inner class DeleteByIdTests {
+
+        @Test
+        fun `should delete team membership`() {
+            val teamMembership = createTeamMembership(id = 1)
+
+            every { serviceSpy.getById(any<Long>(), any<Boolean>(), any()) } returns teamMembership
+            every { repository.delete(any<TeamMembership>()) } just runs
+
+            val result = serviceSpy.deleteById(1)
+
+            verify {
+                serviceSpy.getById(any<Long>(), any<Boolean>(), any())
+                repository.delete(any<TeamMembership>())
+            }
+            assertEquals(result, "Участник команды удален.")
+        }
+
+        @Test
+        fun `should throw NotFoundException when team membership not found`() {
+            every { serviceSpy.getById(any<Long>(), any<Boolean>(), any()) } throws NotFoundException(
+                DefaultExceptionMessages.TEAM_MEMBERSHIP_NOT_FOUND.getMessage()
+            )
+
+            val exception = assertFailsWith<NotFoundException> { serviceSpy.deleteById(1) }
+
+            verify { serviceSpy.getById(any<Long>(), any<Boolean>(), any()) }
+            verify(exactly = 0) { repository.delete(any<TeamMembership>()) }
+            assertEquals(exception.message, DefaultExceptionMessages.TEAM_MEMBERSHIP_NOT_FOUND.getMessage())
+        }
+    }
+
+    @Nested
+    inner class DeleteByUserIdAndTeamIdTests {
+
+        @Test
+        fun `should delete team membership`() {
+            val teamMembership = createTeamMembership()
+
+            every { serviceSpy.getById(any<Long>(), any<Long>()) } returns teamMembership
+            every { repository.delete(any<TeamMembership>()) } just runs
+
+            val result = serviceSpy.deleteById(1, 1)
+
+            verify {
+                serviceSpy.getById(any<Long>(), any<Long>())
+                repository.delete(any<TeamMembership>())
+            }
+            assertEquals(result, "Участник команды удален.")
+        }
+
+        @Test
+        fun `should throw NotFoundException when team membership not found`() {
+            every {
+                serviceSpy.getById(
+                    any<Long>(),
+                    any<Long>()
+                )
+            } throws NotFoundException(DefaultExceptionMessages.TEAM_MEMBERSHIP_NOT_FOUND.getMessage())
+
+            val exception = assertFailsWith<NotFoundException> { serviceSpy.deleteById(1, 1) }
+
+            verify { serviceSpy.getById(any<Long>(), any<Long>()) }
+            verify(exactly = 0) { repository.delete(any<TeamMembership>()) }
+            assertEquals(exception.message, DefaultExceptionMessages.TEAM_MEMBERSHIP_NOT_FOUND.getMessage())
+        }
+    }
+
+    @Nested
+    inner class DeleteAllMembersTests {
+
+        @Test
+        fun `should delete all team's memberships`() {
+            val team = createTeam(id = 1)
+
+            every { teamsService.getById(any<Long>(), any(), any()) } returns team
+            every { repository.deleteAllByTeam(any()) } just runs
+
+            val result = serviceSpy.deleteAllMembers(1)
+
+            verify {
+                teamsService.getById(any<Long>(), any(), any())
+                repository.deleteAllByTeam(any())
+            }
+            assertEquals(result, "Все участники команды удалены.")
+        }
+
+        @Test
+        fun `should return NotFoundException when team not found`() {
+            every { teamsService.getById(any<Long>(), any(), any()) } throws NotFoundException(DefaultExceptionMessages.TEAM_NOT_FOUND.getMessage())
+
+            val exception = assertFailsWith<NotFoundException> { serviceSpy.deleteAllMembers(1)}
+
+            verify { teamsService.getById(any<Long>(), any(), any()) }
+            verify(exactly = 0) { repository.deleteAllByTeam(any()) }
+            assertEquals(exception.message, DefaultExceptionMessages.TEAM_NOT_FOUND.getMessage())
+
+        }
+    }
+
+    @Nested
+    inner class DeleteAllTests {
+
+        @Test
+        fun `should delete all team memberships`() {
+            every { repository.deleteAll() } just runs
+
+            val result = service.deleteAll()
+
+            verify { repository.deleteAll() }
+            assertEquals(result, "Все записи об участиях в командах удалены.")
+        }
+    }
+
 }
