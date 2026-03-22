@@ -46,7 +46,11 @@ class TeamMembershipService(
 
     @Transactional
     override fun create(item: CreateTeamMembershipDto): TeamMembership {
-        repository.findByUserIdAndTeamId(item.userId, item.teamId)?.let { throw DoubleRecordException("Этот пользователь уже состоит в этой команде.") }
+        repository.findByUserIdAndTeamId(item.userId, item.teamId)?.let {
+            throw DoubleRecordException(
+                DefaultExceptionMessages.TEAM_MEMBERSHIP_DOUBLE_RECORD.getMessage()
+            )
+        }
 
         val user = usersService.getById(item.userId, message = DefaultExceptionMessages.USER_NOT_FOUND.getMessage())!!
         val team = teamsService.getById(item.teamId, message = DefaultExceptionMessages.TEAM_NOT_FOUND.getMessage())!!
@@ -57,7 +61,7 @@ class TeamMembershipService(
     @Transactional
     override fun update(item: UpdateTeamMembershipDto): TeamMembership {
         return getById(item.userId, item.teamId)
-            .let {record ->
+            .let { record ->
                 item.role?.let { record.role = it }
                 repository.save(record)
             }
