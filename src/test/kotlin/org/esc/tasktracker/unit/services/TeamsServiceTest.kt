@@ -2,6 +2,7 @@ package org.esc.tasktracker.unit.services
 
 import io.mockk.*
 import org.esc.tasktracker.dto.filters.TeamsFilterDto
+import org.esc.tasktracker.dto.teams.CreateTeamMembershipDto
 import org.esc.tasktracker.entities.Teams
 import org.esc.tasktracker.exceptions.NotFoundException
 import org.esc.tasktracker.mappers.TeamsMapper
@@ -15,6 +16,7 @@ import org.esc.tasktracker.unit.generators.createTeamUpdateDto
 import org.esc.tasktracker.unit.generators.createUser
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.domain.Specification
@@ -29,14 +31,15 @@ class TeamsServiceTest {
     private val teamsMapper = mockk<TeamsMapper>()
     private val teamsSpecifications = mockk<TeamsSpecifications>()
     private val usersService = mockk<UsersService>()
-    private val service = TeamsService(repository, teamsMapper, teamsSpecifications, usersService)
+    private val applicationEventPublisher = mockk<ApplicationEventPublisher>()
+    private val service = TeamsService(repository, teamsMapper, teamsSpecifications, usersService, applicationEventPublisher)
 
     private lateinit var serviceSpy: TeamsService
 
     @BeforeEach
     fun setup() {
         MockKAnnotations.init(this)
-        serviceSpy = spyk(TeamsService(repository, teamsMapper, teamsSpecifications, usersService))
+        serviceSpy = spyk(TeamsService(repository, teamsMapper, teamsSpecifications, usersService, applicationEventPublisher))
     }
 
     @Nested
@@ -169,6 +172,7 @@ class TeamsServiceTest {
             val user = createUser()
             val team = createTeam()
 
+            every { applicationEventPublisher.publishEvent(any<CreateTeamMembershipDto>()) } just runs
             every { usersService.getById(any(), throwable = true, message = any()) } returns user
             every { teamsMapper.teamFromDto(any(), any()) } returns team
             every { repository.save(any()) } returns team
