@@ -22,5 +22,5 @@ class BadRequestException private constructor(
     message: String
 ) : AbstractHttpException(status, message) {
     constructor(message: String) : this(HttpStatus.BAD_REQUEST.value(), message)
-    constructor(message: DefaultExceptionMessages) : this(HttpStatus.BAD_REQUEST.value(), message.toString())
+    constructor(message: DefaultExceptionMessages) : this(HttpStatus.BAD_REQUEST.value(), message.getMessage())
 }
