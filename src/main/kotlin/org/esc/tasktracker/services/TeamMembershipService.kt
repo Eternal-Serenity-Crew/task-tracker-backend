@@ -39,7 +39,7 @@ class TeamMembershipService(
 
     fun getById(userId: Long, teamId: Long): TeamMembership {
         return repository.findByUserIdAndTeamId(userId, teamId) ?: throw NotFoundException(
-            DefaultExceptionMessages.TEAM_MEMBERSHIP_NOT_FOUND.getMessage()
+            DefaultExceptionMessages.TEAM_MEMBERSHIP_NOT_FOUND
         )
     }
 
@@ -47,7 +47,7 @@ class TeamMembershipService(
     override fun create(item: CreateTeamMembershipDto): TeamMembership {
         repository.findByUserIdAndTeamId(item.userId, item.teamId)?.let {
             throw DoubleRecordException(
-                DefaultExceptionMessages.TEAM_MEMBERSHIP_DOUBLE_RECORD.getMessage()
+                DefaultExceptionMessages.TEAM_MEMBERSHIP_DOUBLE_RECORD
             )
         }
 
@@ -68,7 +68,11 @@ class TeamMembershipService(
 
     @Transactional
     override fun deleteById(id: Long): String {
-        return getById(id, throwable = true, message = DefaultExceptionMessages.TEAM_MEMBERSHIP_NOT_FOUND.getMessage())!!
+        return getById(
+            id,
+            throwable = true,
+            message = DefaultExceptionMessages.TEAM_MEMBERSHIP_NOT_FOUND.getMessage()
+        )!!
             .let {
                 repository.delete(it)
                 "Участник команды удален."
