@@ -2,12 +2,15 @@ package org.esc.tasktracker.services
 
 import org.esc.tasktracker.dto.filters.TeamsFilterDto
 import org.esc.tasktracker.dto.teams.CreateTeamDto
+import org.esc.tasktracker.dto.teams.CreateTeamMembershipDto
 import org.esc.tasktracker.dto.teams.UpdateTeamDto
 import org.esc.tasktracker.entities.Teams
+import org.esc.tasktracker.enums.TeamRoles
 import org.esc.tasktracker.interfaces.CrudService
 import org.esc.tasktracker.mappers.TeamsMapper
 import org.esc.tasktracker.repositories.TeamsRepository
 import org.esc.tasktracker.repositories.specs.TeamsSpecifications
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.domain.Specification
@@ -40,7 +43,8 @@ class TeamsService(
     override val repository: TeamsRepository,
     private val teamsMapper: TeamsMapper,
     private val teamsSpecifications: TeamsSpecifications,
-    private val usersService: UsersService
+    private val usersService: UsersService,
+    private val applicationEventPublisher: ApplicationEventPublisher
 ) :
     CrudService<Teams, Long, CreateTeamDto, UpdateTeamDto, TeamsFilterDto> {
 
@@ -105,7 +109,17 @@ class TeamsService(
             message = "Пользователь с ID ${item.userId} не найден."
         )!!
 
-        return repository.save(teamsMapper.teamFromDto(item, user))
+        repository.save(teamsMapper.teamFromDto(item, user))
+            .let { team ->
+                applicationEventPublisher.publishEvent(
+                    CreateTeamMembershipDto(
+                        userId = user.id,
+                        teamId = team.id,
+                        role = TeamRoles.ADMIN
+                    )
+                )
+                return team
+            }
     }
 
     /**
