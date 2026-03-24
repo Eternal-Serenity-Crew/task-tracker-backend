@@ -1,5 +1,7 @@
 package org.esc.tasktracker.exceptions
 
+import org.esc.tasktracker.enums.DefaultExceptionMessages
+import org.esc.tasktracker.enums.DefaultExceptionMessages.Companion.getMessage
 import org.springframework.http.HttpStatus
 
 /**
@@ -16,5 +18,10 @@ import org.springframework.http.HttpStatus
  * @author Vladimir Fokin
  * @since 1.0
  */
-class BadRequestException(override val message: String) :
-    AbstractHttpException(HttpStatus.BAD_REQUEST.value(), message)
+class BadRequestException private constructor(
+    status: Int,
+    message: String
+) : AbstractHttpException(status, message) {
+    constructor(message: String) : this(HttpStatus.BAD_REQUEST.value(), message)
+    constructor(message: DefaultExceptionMessages) : this(HttpStatus.BAD_REQUEST.value(), message.getMessage())
+}
