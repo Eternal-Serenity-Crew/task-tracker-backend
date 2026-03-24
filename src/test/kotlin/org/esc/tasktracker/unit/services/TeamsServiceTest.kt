@@ -167,7 +167,7 @@ class TeamsServiceTest {
     inner class CreateTests {
 
         @Test
-        fun `should create user`() {
+        fun `should create team`() {
             val dto = createTeamCreateDto()
             val user = createUser()
             val team = createTeam()
