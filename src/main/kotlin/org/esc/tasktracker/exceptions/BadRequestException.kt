@@ -1,6 +1,7 @@
 package org.esc.tasktracker.exceptions
 
 import org.esc.tasktracker.enums.DefaultExceptionMessages
+import org.esc.tasktracker.enums.DefaultExceptionMessages.Companion.getMessage
 import org.springframework.http.HttpStatus
 
 /**
