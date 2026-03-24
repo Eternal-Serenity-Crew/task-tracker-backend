@@ -18,6 +18,7 @@ class JwtAuthenticationEntryPoint(private val jwtUtil: JwtUtil) : Authentication
         authException: AuthenticationException
     ) {
         response.contentType = "application/json"
+        response.characterEncoding = "UTF-8"
         val auth = request.getHeader("Authorization")
 
         if (auth != null && auth.startsWith("Bearer ")) {
