@@ -12,6 +12,7 @@ import org.esc.tasktracker.interfaces.CrudService
 import org.esc.tasktracker.mappers.TeamsMapper
 import org.esc.tasktracker.repositories.TeamMembershipRepository
 import org.esc.tasktracker.repositories.specs.TeamMembershipSpecifications
+import org.springframework.context.event.EventListener
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.domain.Specification
@@ -43,6 +44,7 @@ class TeamMembershipService(
         )
     }
 
+    @EventListener
     @Transactional
     override fun create(item: CreateTeamMembershipDto): TeamMembership {
         repository.findByUserIdAndTeamId(item.userId, item.teamId)?.let {

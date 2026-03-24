@@ -73,12 +73,12 @@ class JwtRequestFilter(
         response: HttpServletResponse,
         filterChain: FilterChain
     ) {
-        val authorizationHeader = request.getHeader("Authorization")
+        try {
+            val authorizationHeader = request.getHeader("Authorization")
 
-        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            val jwtToken = authorizationHeader.substring(7)
+            if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+                val jwtToken = authorizationHeader.substring(7)
 
-            try {
                 if (jwtUtil.verifyToken(jwtToken)) {
                     val user = jwtUtil.getUserFromToken(jwtToken)
                     val authorities = emptyList<GrantedAuthority>()
@@ -88,27 +88,29 @@ class JwtRequestFilter(
                         SecurityContextHolder.getContext().authentication = authReq
                     }
                 }
-            } catch (ex: JwtAuthenticationException) {
-                SecurityContextHolder.clearContext()
-
-                response.status = HttpServletResponse.SC_UNAUTHORIZED
-                response.contentType = "application/json;charset=UTF-8"
-                response.characterEncoding = "UTF-8"
-                response.writer?.use { it.write(generateMessage(ex)) }
-
-                return
-            } catch (ex: AuthenticationException) {
-                SecurityContextHolder.clearContext()
-                response.status = HttpServletResponse.SC_UNAUTHORIZED
-                response.contentType = "application/json;charset=UTF-8"
-                response.characterEncoding = "UTF-8"
-                response.writer?.use {
-                    it.write(
-                        """{"status": ${HttpStatus.UNAUTHORIZED.value()}, "message": "Authentication failed"}"""
-                    )
-                }
-                return
             }
+
+            filterChain.doFilter(request, response)
+        } catch (ex: JwtAuthenticationException) {
+            SecurityContextHolder.clearContext()
+
+            response.status = HttpServletResponse.SC_UNAUTHORIZED
+            response.contentType = "application/json;charset=UTF-8"
+            response.characterEncoding = "UTF-8"
+            response.writer?.use { it.write(generateMessage(ex)) }
+
+            return
+        } catch (_: AuthenticationException) {
+            SecurityContextHolder.clearContext()
+            response.status = HttpServletResponse.SC_UNAUTHORIZED
+            response.contentType = "application/json;charset=UTF-8"
+            response.characterEncoding = "UTF-8"
+            response.writer?.use {
+                it.write(
+                    """{"status": ${HttpStatus.UNAUTHORIZED.value()}, "message": "Authentication failed"}"""
+                )
+            }
+            return
         }
     }
 
