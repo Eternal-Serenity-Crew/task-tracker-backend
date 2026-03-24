@@ -3,15 +3,15 @@ package org.esc.tasktracker.io.filters
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import org.esc.tasktracker.exceptions.JwtAuthenticationException
 import org.esc.tasktracker.security.JwtUtil
+import org.springframework.http.HttpStatus
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
 import javax.naming.AuthenticationException
-import kotlin.text.startsWith
-import kotlin.text.substring
 
 /**
  * Servlet filter that intercepts HTTP requests to validate JWT tokens and set up authentication
@@ -73,12 +73,12 @@ class JwtRequestFilter(
         response: HttpServletResponse,
         filterChain: FilterChain
     ) {
-        try {
-            val authorizationHeader = request.getHeader("Authorization")
+        val authorizationHeader = request.getHeader("Authorization")
 
-            if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-                val jwtToken = authorizationHeader.substring(7)
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            val jwtToken = authorizationHeader.substring(7)
 
+            try {
                 if (jwtUtil.verifyToken(jwtToken)) {
                     val user = jwtUtil.getUserFromToken(jwtToken)
                     val authorities = emptyList<GrantedAuthority>()
@@ -88,12 +88,37 @@ class JwtRequestFilter(
                         SecurityContextHolder.getContext().authentication = authReq
                     }
                 }
-            }
+            } catch (ex: JwtAuthenticationException) {
+                SecurityContextHolder.clearContext()
 
-            filterChain.doFilter(request, response)
-        } catch (ex: AuthenticationException) {
-            SecurityContextHolder.clearContext()
-            throw ex
+                response.status = HttpServletResponse.SC_UNAUTHORIZED
+                response.contentType = "application/json;charset=UTF-8"
+                response.characterEncoding = "UTF-8"
+                response.writer?.use { it.write(generateMessage(ex)) }
+
+                return
+            } catch (ex: AuthenticationException) {
+                SecurityContextHolder.clearContext()
+                response.status = HttpServletResponse.SC_UNAUTHORIZED
+                response.contentType = "application/json;charset=UTF-8"
+                response.characterEncoding = "UTF-8"
+                response.writer?.use {
+                    it.write(
+                        """{"status": ${HttpStatus.UNAUTHORIZED.value()}, "message": "Authentication failed"}"""
+                    )
+                }
+                return
+            }
+        }
+    }
+
+    private fun generateMessage(ex: Throwable): String {
+        return if (ex.message?.contains("Невалидное содержание токена.") == true ||
+            ex.message?.contains("Invalid token!") == true
+        ) {
+            """{"status": ${HttpStatus.UNAUTHORIZED.value()}, "message": "${ex.message}"}"""
+        } else {
+            """{"status": ${HttpStatus.FORBIDDEN.value()}, "message": "Срок жизни токена истёк."}"""
         }
     }
 }
