@@ -1,5 +1,7 @@
 package org.esc.tasktracker.exceptions
 
+import org.esc.tasktracker.enums.DefaultExceptionMessages
+import org.esc.tasktracker.enums.DefaultExceptionMessages.Companion.getMessage
 import org.springframework.http.HttpStatus
 
 /**
@@ -16,4 +18,10 @@ import org.springframework.http.HttpStatus
  * @author Vladimir Fokin
  * @since 1.0
  */
-class NotFoundException(override val message: String) : AbstractHttpException(HttpStatus.NOT_FOUND.value(), message)
+class NotFoundException private constructor(
+    status: Int,
+    message: String
+) : AbstractHttpException(status, message) {
+    constructor(message: String) : this(HttpStatus.NOT_FOUND.value(), message)
+    constructor(message: DefaultExceptionMessages) : this(HttpStatus.NOT_FOUND.value(), message.getMessage())
+}
